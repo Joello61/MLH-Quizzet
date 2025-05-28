@@ -1,7 +1,6 @@
-'''This module ties together the
-questions generation and incorrect answer
-generation modules
-'''
+"""Ce module lie ensemble les modules de génération de questions
+et de génération de réponses incorrectes
+"""
 from question_extraction import QuestionExtractor
 from incorrect_answer_generation import IncorrectAnswerGenerator
 import re
@@ -9,9 +8,7 @@ from nltk import sent_tokenize
 
 
 class QuestionGeneration:
-    '''This class contains the method
-    to generate questions
-    '''
+    """Cette classe contient la méthode pour générer des questions"""
 
     def __init__(self, num_questions, num_options):
         self.num_questions = num_questions
@@ -19,38 +16,57 @@ class QuestionGeneration:
         self.question_extractor = QuestionExtractor(num_questions)
 
     def clean_text(self, text):
-        text = text.replace('\n', ' ')  # remove newline chars
+        """Nettoie le texte en supprimant les caractères indésirables"""
+        text = text.replace('\n', ' ')  # supprimer les retours à la ligne
         sentences = sent_tokenize(text)
         cleaned_text = ""
-        for sentence in sentences:
-            # remove non alphanumeric chars
-            cleaned_sentence = re.sub(r'([^\s\w]|_)+', '', sentence)
 
-            # substitute multiple spaces with single space
+        for sentence in sentences:
+            # supprimer les caractères non alphanumériques
+            cleaned_sentence = re.sub(r'([^\s\w]|_)+', '', sentence)
+            # substituer les espaces multiples par un seul espace
             cleaned_sentence = re.sub(' +', ' ', cleaned_sentence)
             cleaned_text += cleaned_sentence
 
-            if cleaned_text[-1] == ' ':
-                cleaned_text[-1] = '.'
+            # CORRECTION : remplacer l'assignation impossible
+            if cleaned_text.endswith(' '):
+                cleaned_text = cleaned_text[:-1] + '.'  # enlever le dernier espace et ajouter un point
             else:
                 cleaned_text += '.'
 
-            cleaned_text += ' '  # pad with space at end
-        return cleaned_text
+            cleaned_text += ' '  # ajouter un espace à la fin
+
+        return cleaned_text.strip()  # supprimer les espaces en début/fin
 
     def generate_questions_dict(self, document):
-        document = self.clean_text(document)
-        self.questions_dict = self.question_extractor.get_questions_dict(
-            document)
-        self.incorrect_answer_generator = IncorrectAnswerGenerator(document)
+        """Génère un dictionnaire de questions à partir d'un document"""
+        try:
+            document = self.clean_text(document)
+            self.questions_dict = self.question_extractor.get_questions_dict(document)
+            self.incorrect_answer_generator = IncorrectAnswerGenerator(document)
 
-        for i in range(1, self.num_questions + 1):
-            if i not in self.questions_dict:
-                continue
-            self.questions_dict[i]["options"] \
-                = self.incorrect_answer_generator.get_all_options_dict(
-                self.questions_dict[i]["answer"],
-                self.num_options
-            )
+            for i in range(1, self.num_questions + 1):
+                if i not in self.questions_dict:
+                    continue
 
-        return self.questions_dict
+                try:
+                    self.questions_dict[i]["options"] = \
+                        self.incorrect_answer_generator.get_all_options_dict(
+                            self.questions_dict[i]["answer"],
+                            self.num_options
+                        )
+                except Exception as e:
+                    print(f"Erreur lors de la génération des options pour la question {i}: {e}")
+                    # Créer des options par défaut en cas d'erreur
+                    self.questions_dict[i]["options"] = {
+                        1: self.questions_dict[i]["answer"],
+                        2: "Option 2",
+                        3: "Option 3",
+                        4: "Option 4"
+                    }
+
+            return self.questions_dict
+
+        except Exception as e:
+            print(f"Erreur lors de la génération des questions : {e}")
+            return {}
