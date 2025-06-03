@@ -1,5 +1,5 @@
-'''This file contains the module for generating
-'''
+"""Ce fichier contient le module pour générer des questions
+"""
 import nltk
 import spacy
 from nltk.corpus import stopwords
@@ -8,28 +8,42 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 class QuestionExtractor:
-    ''' This class contains all the methods
-    required for extracting questions from
-    a given document
-    '''
+    """ Cette classe contient toutes les méthodes
+    requises pour extraire des questions d'un document donné
+    """
 
     def __init__(self, num_questions):
-
         self.num_questions = num_questions
 
-        # hash set for fast lookup
-        self.stop_words = set(stopwords.words('english'))
+        # hash set pour une recherche rapide
+        try:
+            self.stop_words = set(stopwords.words('english'))
+        except LookupError:
+            print("Téléchargement des données NLTK...")
+            nltk.download('stopwords')
+            nltk.download('punkt')
+            self.stop_words = set(stopwords.words('english'))
 
-        # named entity recognition tagger
-        self.ner_tagger = spacy.load('en_core_web_md')
+        # tagueur de reconnaissance d'entités nommées
+        try:
+            self.ner_tagger = spacy.load('en_core_web_md')
+        except OSError:
+            print("Modèle spaCy 'en_core_web_md' non trouvé.")
+            print("Installez-le avec: python -m spacy download en_core_web_md")
+            try:
+                # Essayer le modèle plus petit en fallback
+                self.ner_tagger = spacy.load('en_core_web_sm')
+                print("Utilisation du modèle 'en_core_web_sm' à la place.")
+            except OSError:
+                print("Aucun modèle spaCy trouvé. Installez au moins 'en_core_web_sm'")
+                raise
 
         self.vectorizer = TfidfVectorizer()
-
         self.questions_dict = dict()
 
     def get_questions_dict(self, document):
-        '''
-        Returns a dict of questions in the format:
+        """
+        Retourne un dict de questions au format:
         question_number: {
             question: str
             answer: str
@@ -39,114 +53,141 @@ class QuestionExtractor:
             * document : string
         Returns:
             * dict
-        '''
-        # find candidate keywords
-        self.candidate_keywords = self.get_candidate_entities(document)
+        """
+        try:
+            # trouver les mots-clés candidats
+            self.candidate_keywords = self.get_candidate_entities(document)
 
-        # set word scores before ranking candidate keywords
-        self.set_tfidf_scores(document)
+            if not self.candidate_keywords:
+                print("Aucune entité trouvée dans le document")
+                return {}
 
-        # rank the keywords using calculated tf idf scores
-        self.rank_keywords()
+            # définir les scores des mots avant de classer les mots-clés candidats
+            self.set_tfidf_scores(document)
 
-        # form the questions
-        self.form_questions()
+            # classer les mots-clés en utilisant les scores tf idf calculés
+            self.rank_keywords()
 
-        return self.questions_dict
+            # former les questions
+            self.form_questions()
+
+            return self.questions_dict
+        except Exception as e:
+            print(f"Erreur dans get_questions_dict: {e}")
+            return {}
 
     def get_filtered_sentences(self, document):
-        ''' Returns a list of sentences - each of
-        which has been cleaned of stopwords.
+        """ Retourne une liste de phrases - chacune
+        ayant été nettoyée des mots vides.
         Params:
-                * document: a paragraph of sentences
+                * document: un paragraphe de phrases
         Returns:
-                * list<str> : list of string
-        '''
-        sentences = sent_tokenize(document)  # split documents into sentences
-
+                * list<str> : liste de chaînes
+        """
+        sentences = sent_tokenize(document)  # diviser les documents en phrases
         return [self.filter_sentence(sentence) for sentence in sentences]
 
     def filter_sentence(self, sentence):
-        '''Returns the sentence without stopwords
+        """Retourne la phrase sans les mots vides
         Params:
-                * sentence: A string
+                * sentence: Une chaîne
         Returns:
                 * string
-        '''
+        """
         words = word_tokenize(sentence)
-        return ' '.join(w for w in words if w not in self.stop_words)
+        return ' '.join(w for w in words if w.lower() not in self.stop_words)
 
     def get_candidate_entities(self, document):
-        ''' Returns a list of entities according to
-        spacy's ner tagger. These entities are candidates
-        for the questions
+        """ Retourne une liste d'entités selon
+        le tagueur ner de spacy. Ces entités sont candidates
+        pour les questions
 
         Params:
                 * document : string
         Returns:
                 * list<str>
-        '''
-        entities = self.ner_tagger(document)
-        entity_list = []
+        """
+        try:
+            entities = self.ner_tagger(document)
+            entity_list = []
 
-        for ent in entities.ents:
-            entity_list.append(ent.text)
+            for ent in entities.ents:
+                # Filtrer les entités trop courtes ou peu significatives
+                if len(ent.text.strip()) > 1 and ent.label_ in ['PERSON', 'ORG', 'GPE', 'DATE', 'MONEY', 'PERCENT']:
+                    entity_list.append(ent.text.strip())
 
-        return list(set(entity_list))  # remove duplicates
+            return list(set(entity_list))  # supprimer les doublons
+        except Exception as e:
+            print(f"Erreur lors de l'extraction des entités: {e}")
+            return []
 
     def set_tfidf_scores(self, document):
-        ''' Sets the tf-idf scores for each word'''
-        self.unfiltered_sentences = sent_tokenize(document)
-        self.filtered_sentences = self.get_filtered_sentences(document)
+        """ Définit les scores tf-idf pour chaque mot"""
+        try:
+            self.unfiltered_sentences = sent_tokenize(document)
+            self.filtered_sentences = self.get_filtered_sentences(document)
 
-        self.word_score = dict()  # (word, score)
+            if not self.filtered_sentences:
+                print("Aucune phrase filtrée trouvée")
+                return
 
-        # (word, sentence where word score is max)
-        self.sentence_for_max_word_score = dict()
+            self.word_score = dict()  # (word, score)
 
-        tf_idf_vector = self.vectorizer.fit_transform(self.filtered_sentences)
-        feature_names = self.vectorizer.get_feature_names()
-        tf_idf_matrix = tf_idf_vector.todense().tolist()
+            # (word, sentence where word score is max)
+            self.sentence_for_max_word_score = dict()
 
-        num_sentences = len(self.unfiltered_sentences)
-        num_features = len(feature_names)
+            tf_idf_vector = self.vectorizer.fit_transform(self.filtered_sentences)
 
-        for i in range(num_features):
-            word = feature_names[i]
-            self.sentence_for_max_word_score[word] = ""
-            tot = 0.0
-            cur_max = 0.0
+            # Gestion des différentes versions de sklearn
+            try:
+                feature_names = self.vectorizer.get_feature_names_out()
+            except AttributeError:
+                feature_names = self.vectorizer.get_feature_names()
 
-            for j in range(num_sentences):
-                tot += tf_idf_matrix[j][i]
+            tf_idf_matrix = tf_idf_vector.todense().tolist()
 
-                if tf_idf_matrix[j][i] > cur_max:
-                    cur_max = tf_idf_matrix[j][i]
-                    self.sentence_for_max_word_score[word] = self.unfiltered_sentences[j]
+            num_sentences = len(self.unfiltered_sentences)
+            num_features = len(feature_names)
 
-            # average score for each word
-            self.word_score[word] = tot / num_sentences
+            for i in range(num_features):
+                word = feature_names[i]
+                self.sentence_for_max_word_score[word] = ""
+                tot = 0.0
+                cur_max = 0.0
+
+                for j in range(num_sentences):
+                    if j < len(tf_idf_matrix):
+                        tot += tf_idf_matrix[j][i]
+
+                        if tf_idf_matrix[j][i] > cur_max:
+                            cur_max = tf_idf_matrix[j][i]
+                            self.sentence_for_max_word_score[word] = self.unfiltered_sentences[j]
+
+                # score moyen pour chaque mot
+                self.word_score[word] = tot / num_sentences if num_sentences > 0 else 0
+        except Exception as e:
+            print(f"Erreur lors du calcul des scores TF-IDF: {e}")
 
     def get_keyword_score(self, keyword):
-        ''' Returns the score for a keyword
+        """ Retourne le score pour un mot-clé
         Params:
-            * keyword : string of possible several words
+            * keyword : string de possibles plusieurs mots
         Returns:
             * float : score
-        '''
+        """
         score = 0.0
-        for word in word_tokenize(keyword):
+        words = word_tokenize(keyword.lower())
+        for word in words:
             if word in self.word_score:
                 score += self.word_score[word]
         return score
 
     def get_corresponding_sentence_for_keyword(self, keyword):
-        ''' Finds and returns a sentence containing
-        the keywords
-        '''
-        words = word_tokenize(keyword)
+        """ Trouve et retourne une phrase contenant
+        les mots-clés
+        """
+        words = word_tokenize(keyword.lower())
         for word in words:
-
             if word not in self.sentence_for_max_word_score:
                 continue
 
@@ -154,44 +195,51 @@ class QuestionExtractor:
 
             all_present = True
             for w in words:
-                if w not in sentence:
+                if w.lower() not in sentence.lower():
                     all_present = False
+                    break
 
             if all_present:
                 return sentence
         return ""
 
     def rank_keywords(self):
-        '''Rank keywords according to their score'''
+        """Classer les mots-clés selon leur score"""
         self.candidate_triples = []  # (score, keyword, corresponding sentence)
 
         for candidate_keyword in self.candidate_keywords:
-            self.candidate_triples.append([
-                self.get_keyword_score(candidate_keyword),
-                candidate_keyword,
-                self.get_corresponding_sentence_for_keyword(candidate_keyword)
-            ])
+            sentence = self.get_corresponding_sentence_for_keyword(candidate_keyword)
+            if sentence:  # Seulement ajouter si une phrase correspondante est trouvée
+                self.candidate_triples.append([
+                    self.get_keyword_score(candidate_keyword),
+                    candidate_keyword,
+                    sentence
+                ])
 
         self.candidate_triples.sort(reverse=True)
 
     def form_questions(self):
-        ''' Forms the question and populates
-        the question dict
-        '''
+        """ Forme les questions et remplit
+        le dict des questions
+        """
         used_sentences = list()
         idx = 0
         cntr = 1
         num_candidates = len(self.candidate_triples)
+
         while cntr <= self.num_questions and idx < num_candidates:
             candidate_triple = self.candidate_triples[idx]
 
-            if candidate_triple[2] not in used_sentences:
+            if candidate_triple[2] not in used_sentences and candidate_triple[2].strip():
                 used_sentences.append(candidate_triple[2])
 
+                # Créer la question en remplaçant le mot-clé par des tirets
+                question_text = candidate_triple[2].replace(
+                    candidate_triple[1],
+                    '_' * len(candidate_triple[1]))
+
                 self.questions_dict[cntr] = {
-                    "question": candidate_triple[2].replace(
-                        candidate_triple[1],
-                        '_' * len(candidate_triple[1])),
+                    "question": question_text,
                     "answer": candidate_triple[1]
                 }
 
