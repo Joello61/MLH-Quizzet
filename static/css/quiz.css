@@ -61,11 +61,7 @@ main {
   white-space: normal;
 }
 
-.submit-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 30px;
-}
+
 
 /* .correct-answer {
     color: green;
@@ -125,10 +121,15 @@ input[type="radio"]:checked + label {
   transition: all 0.2s ease-in-out;
 }
 
-.end {
+/* .end {
   margin: auto;
-}
+} */
 
+.submit-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
 .button.is-fullwidth {
   display: flex;
   width: 50%;
