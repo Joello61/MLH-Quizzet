@@ -69,7 +69,7 @@ def pdf2text(file_path: str, file_exten: str) -> str:
     return _content if _content.strip() else None
 
 
-def txt2questions(doc: str, n=5, o=4) -> dict:
+def txt2questions(doc: str, n=8, o=5) -> dict:
     """Obtient toutes les questions et options"""
 
     if not doc or not doc.strip():
