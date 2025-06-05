@@ -22,6 +22,8 @@ body {
   margin: auto;
 }
 
+
+
 .card.has-text-centered .card-header,
 .card.has-text-centered .card-content,
 .card.has-text-centered .card-footer {
@@ -33,6 +35,8 @@ body {
   font-size: 1.75rem;
   font-weight: bold;
 }
+
+
 
 .navbar {
   margin-bottom: 20px !important;
@@ -170,4 +174,4 @@ body {
 
 .hero {
   margin-top: 70px !important;
-}
+} 
