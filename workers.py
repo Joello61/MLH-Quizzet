@@ -1,99 +1,92 @@
 """
-Module workers.py mis à jour avec meilleure gestion d'erreurs
+Module workers.py — Lecture de fichier & génération de questions avec gestion robuste des erreurs
 """
 
 try:
     from PyPDF2 import PdfReader  # Version récente
 except ImportError:
     try:
-        from PyPDF2 import PdfFileReader as PdfReader  # Version ancienne comme la vôtre
+        from PyPDF2 import PdfFileReader as PdfReader  # Version ancienne
     except ImportError:
-        print("Erreur : PyPDF2 non trouvé. Installez avec: pip install PyPDF2")
+        print(" [ERREUR IMPORT] Le module PyPDF2 est introuvable.\n"
+              " Veuillez l’installer avec la commande : pip install PyPDF2")
         raise
 
 from question_generation_main import QuestionGeneration
 
 
-def pdf2text(file_path: str, file_exten: str) -> str:
-    """Convertit un fichier donné en contenu texte"""
+def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
+    """Lit un fichier PDF ou TXT, extrait son contenu et génère des questions à choix multiples."""
 
-    _content = ''
+    if not file_path:
+        print("[ERREUR] Aucun chemin de fichier fourni.")
+        return {}
 
+    content = ''
+
+    # Lecture du fichier
     try:
-        # Identifier le type de fichier et obtenir son contenu
         if file_exten.lower() == 'pdf':
-            with open(file_path, 'rb') as pdf_file:
-                try:
-                    # Essayer d'abord avec votre version actuelle
-                    from PyPDF2 import PdfFileReader
-                    _pdf_reader = PdfFileReader(pdf_file)
-                    for p in range(_pdf_reader.numPages):
-                        _content += _pdf_reader.getPage(p).extractText()
-                except ImportError:
-                    # Si la version récente est installée
-                    pdf_reader = PdfReader(pdf_file)
-                    for page in pdf_reader.pages:
-                        _content += page.extract_text()
-                except Exception as e:
-                    print(f"Erreur lors de la lecture du PDF : {e}")
-                    return None
-
-            print('PDF operation done!')
+            try:
+                with open(file_path, 'rb') as pdf_file:
+                    try:
+                        from PyPDF2 import PdfFileReader
+                        reader = PdfFileReader(pdf_file)
+                        for p in range(reader.numPages):
+                            try:
+                                content += reader.getPage(p).extractText()
+                            except Exception as e:
+                                print(f"[PDF - Page {p}] Échec d'extraction du texte : {e}")
+                    except ImportError:
+                        from PyPDF2 import PdfReader
+                        reader = PdfReader(pdf_file)
+                        for idx, page in enumerate(reader.pages):
+                            try:
+                                content += page.extract_text()
+                            except Exception as e:
+                                print(f"[PDF - Page {idx}] Échec d'extraction du texte : {e}")
+            except Exception as e:
+                print(f"[ERREUR OUVERTURE PDF] {e}")
+                return {}
 
         elif file_exten.lower() == 'txt':
             try:
                 with open(file_path, 'r', encoding='utf-8') as txt_file:
-                    _content = txt_file.read()
+                    content = txt_file.read()
             except UnicodeDecodeError:
-                # Essayer avec un autre encodage si UTF-8 échoue
                 try:
                     with open(file_path, 'r', encoding='latin-1') as txt_file:
-                        _content = txt_file.read()
+                        content = txt_file.read()
                 except Exception as e:
-                    print(f"Erreur lors de la lecture du fichier texte : {e}")
-                    return None
-
-            print('TXT operation done!')
-
+                    print(f"[ERREUR TXT - Encodage alternatif] {e}")
+                    return {}
+            except Exception as e:
+                print(f"[ERREUR TXT] {e}")
+                return {}
         else:
-            print(f"Type de fichier non supporté : {file_exten}")
-            return None
+            print(f"[ERREUR TYPE] Format non supporté : {file_exten}")
+            return {}
 
-    except FileNotFoundError:
-        print(f"Fichier non trouvé : {file_path}")
-        return None
     except Exception as e:
-        print(f"Erreur inattendue lors du traitement du fichier : {e}")
-        return None
-
-    return _content if _content.strip() else None
-
-
-def txt2questions(doc: str, n=5, o=4) -> dict:
-    """Obtient toutes les questions et options"""
-
-    if not doc or not doc.strip():
-        print("Erreur : Document vide ou invalide")
+        print(f"[ERREUR FICHIER] Problème lors de la lecture du fichier : {e}")
         return {}
 
+    # Vérification du contenu
+    if not content.strip():
+        print("[ERREUR CONTENU] Aucun contenu lisible trouvé dans le fichier.")
+        return {}
+    # Génération des questions
     try:
         qGen = QuestionGeneration(n, o)
-        q = qGen.generate_questions_dict(doc)
+        q = qGen.generate_questions_dict(content)
 
-        # Reformater les options pour l'affichage
-        for i in range(len(q)):
-            if i + 1 in q and 'options' in q[i + 1]:
-                # Vérifier si les options sont dans le bon format
-                if isinstance(q[i + 1]['options'], dict):
-                    # Convertir en liste si c'est un dictionnaire
-                    temp = []
-                    for j in range(1, len(q[i + 1]['options']) + 1):
-                        if j in q[i + 1]['options']:
-                            temp.append(q[i + 1]['options'][j])
-                    q[i + 1]['options'] = temp
+        # Reformater les options
+        for key in q:
+            if 'options' in q[key] and isinstance(q[key]['options'], dict):
+                q[key]['options'] = [q[key]['options'][j] for j in sorted(q[key]['options']) if j in q[key]['options']]
 
         return q
 
     except Exception as e:
-        print(f"Erreur lors de la génération des questions : {e}")
+        print(f"[ERREUR QUESTIONS] Impossible de générer les questions : {e}")
         return {}

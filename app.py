@@ -1,27 +1,25 @@
 import os
-from flask import Flask, render_template, redirect, url_for
-from flask.globals import request
+from flask import Flask, render_template, redirect, url_for, request
 from werkzeug.utils import secure_filename
-from workers import pdf2text, txt2questions
+from workers import generer_questions 
 
 # Constants
 UPLOAD_FOLDER = './pdf/'
-
 
 # Init an app object
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-@ app.route('/')
+@app.route('/')
 def index():
     """ The landing page for the app """
     return render_template('index.html')
 
 
-@ app.route('/quiz', methods=['GET', 'POST'])
+@app.route('/quiz', methods=['GET', 'POST'])
 def quiz():
-    """ Handle upload and conversion of file + other stuff """
+    """ Handle upload and conversion of file + generate questions """
 
     UPLOAD_STATUS = False
     questions = dict()
@@ -36,26 +34,28 @@ def quiz():
             uploaded_file = request.files['file']
             file_path = os.path.join(
                 app.config['UPLOAD_FOLDER'],
-                secure_filename(
-                    uploaded_file.filename))
+                secure_filename(uploaded_file.filename)
+            )
             file_exten = uploaded_file.filename.rsplit('.', 1)[1].lower()
 
             # Save uploaded file
             uploaded_file.save(file_path)
-            # Get contents of file
-            uploaded_content = pdf2text(file_path, file_exten)
-            questions = txt2questions(uploaded_content)
 
-            # File upload + convert success
-            if uploaded_content is not None:
+            # Utilise la fonction fusionnée
+            questions = generer_questions(file_path, file_exten)
+
+            if questions:
                 UPLOAD_STATUS = True
+
         except Exception as e:
-            print(e)
+            print(f"[ERREUR FLASK] aucun fichier entrée")
+
     return render_template(
         'quiz.html',
         uploaded=UPLOAD_STATUS,
         questions=questions,
-        size=len(questions))
+        size=len(questions)
+    )
 
 
 @app.route('/result', methods=['POST', 'GET'])
