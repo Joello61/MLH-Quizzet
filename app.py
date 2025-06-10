@@ -48,7 +48,7 @@ def quiz():
                 UPLOAD_STATUS = True
 
         except Exception as e:
-            print(f"[ERREUR FLASK] aucun fichier entrée")
+            print(f"[FLASK ERROR] no file entered")
 
     return render_template(
         'quiz.html',

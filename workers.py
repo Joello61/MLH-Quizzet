@@ -8,18 +8,18 @@ except ImportError:
     try:
         from PyPDF2 import PdfFileReader as PdfReader  # Version ancienne
     except ImportError:
-        print(" [ERREUR IMPORT] Le module PyPDF2 est introuvable.\n"
-              " Veuillez l’installer avec la commande : pip install PyPDF2")
+        print("[IMPORT ERROR] The PyPDF2 module was not found.\n"
+                    " Please install it with the command: pip install PyPDF2")
         raise
 
 from question_generation_main import QuestionGeneration
 
 
-def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
+def generer_questions(file_path: str, file_exten: str, n=8, o=5) -> dict: # modif robin
     """Lit un fichier PDF ou TXT, extrait son contenu et génère des questions à choix multiples."""
 
     if not file_path:
-        print("[ERREUR] Aucun chemin de fichier fourni.")
+        print("[ERROR] No file path provided.")
         return {}
 
     content = ''
@@ -36,7 +36,7 @@ def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
                             try:
                                 content += reader.getPage(p).extractText()
                             except Exception as e:
-                                print(f"[PDF - Page {p}] Échec d'extraction du texte : {e}")
+                                print(f"[PDF - Page {p}] Failed to extract text: {e}")
                     except ImportError:
                         from PyPDF2 import PdfReader
                         reader = PdfReader(pdf_file)
@@ -44,9 +44,9 @@ def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
                             try:
                                 content += page.extract_text()
                             except Exception as e:
-                                print(f"[PDF - Page {idx}] Échec d'extraction du texte : {e}")
+                                print(f"[PDF - Page {idx}] Failed to extract text: {e}")
             except Exception as e:
-                print(f"[ERREUR OUVERTURE PDF] {e}")
+                print(f"[PDF OPENING ERROR] {e}")
                 return {}
 
         elif file_exten.lower() == 'txt':
@@ -58,22 +58,22 @@ def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
                     with open(file_path, 'r', encoding='latin-1') as txt_file:
                         content = txt_file.read()
                 except Exception as e:
-                    print(f"[ERREUR TXT - Encodage alternatif] {e}")
+                    print(f"[TXT ERROR - Alternative Encoding] {e}")
                     return {}
             except Exception as e:
-                print(f"[ERREUR TXT] {e}")
+                print(f"[ERROR TXT] {e}")
                 return {}
         else:
-            print(f"[ERREUR TYPE] Format non supporté : {file_exten}")
+            print(f"[TYPE ERROR] Unsupported format: {file_exten}")
             return {}
 
     except Exception as e:
-        print(f"[ERREUR FICHIER] Problème lors de la lecture du fichier : {e}")
+        print(f"[FILE ERROR] Problem reading the file : {e}")
         return {}
 
     # Vérification du contenu
     if not content.strip():
-        print("[ERREUR CONTENU] Aucun contenu lisible trouvé dans le fichier.")
+        print("[CONTENT ERROR] No readable content found in the file.")
         return {}
     # Génération des questions
     try:
@@ -88,5 +88,5 @@ def generer_questions(file_path: str, file_exten: str, n=5, o=4) -> dict:
         return q
 
     except Exception as e:
-        print(f"[ERREUR QUESTIONS] Impossible de générer les questions : {e}")
+        print(f"[ERROR QUESTIONS] Unable to generate questions : {e}")
         return {}
