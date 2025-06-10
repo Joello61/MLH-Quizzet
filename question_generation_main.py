@@ -16,21 +16,21 @@ class QuestionGeneration:
         self.question_extractor = QuestionExtractor(num_questions)
 
     def clean_text(self, text):
-        """Nettoie le texte en supprimant les caractères indésirables"""
+        '''Nettoie le texte en préservant la ponctuation essentielle'''
         text = text.replace('\n', ' ')  # supprimer les retours à la ligne
         sentences = sent_tokenize(text)
         cleaned_text = ""
 
         for sentence in sentences:
-            # supprimer les caractères non alphanumériques
-            cleaned_sentence = re.sub(r'([^\s\w]|_)+', '', sentence)
+            # AMÉLIORATION : préserver la ponctuation importante
+            cleaned_sentence = re.sub(r'[^\s\w\.\?\!\,\;\:]', '', sentence)
             # substituer les espaces multiples par un seul espace
             cleaned_sentence = re.sub(' +', ' ', cleaned_sentence)
             cleaned_text += cleaned_sentence
 
-            # CORRECTION : remplacer l'assignation impossible
+            # CORRECTION du bug : impossible d'assigner à un caractère de string
             if cleaned_text.endswith(' '):
-                cleaned_text = cleaned_text[:-1] + '.'  # enlever le dernier espace et ajouter un point
+                cleaned_text = cleaned_text[:-1] + '.'
             else:
                 cleaned_text += '.'
 
@@ -41,8 +41,18 @@ class QuestionGeneration:
     def generate_questions_dict(self, document):
         """Génère un dictionnaire de questions à partir d'un document"""
         try:
+            # Validation du document d'entrée
+            if not document or not document.strip():
+                print("Erreur : Document vide ou invalide")
+                return {}
+
             document = self.clean_text(document)
             self.questions_dict = self.question_extractor.get_questions_dict(document)
+
+            if not self.questions_dict:
+                print("Aucune question générée à partir du document")
+                return {}
+
             self.incorrect_answer_generator = IncorrectAnswerGenerator(document)
 
             for i in range(1, self.num_questions + 1):
