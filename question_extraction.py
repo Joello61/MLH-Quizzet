@@ -112,9 +112,30 @@ class QuestionExtractor:
             entity_list = []
 
             for ent in entities.ents:
-                # Filtrer les entités trop courtes ou peu significatives
-                if len(ent.text.strip()) > 1 and ent.label_ in ['PERSON', 'ORG', 'GPE', 'DATE', 'MONEY', 'PERCENT']:
-                    entity_list.append(ent.text.strip())
+                text = ent.text.strip()
+
+                # Filtrage amélioré des entités
+                if (len(text) > 2 and                           # Plus de 2 caractères
+                    ent.label_ in [
+                        'PERSON',      # Personnes
+                        'ORG',         # Organisations
+                        'GPE',         # Pays, villes, états
+                        'DATE',        # Dates
+                        'MONEY',       # Montants
+                        'PERCENT',     # Pourcentages
+                        'EVENT',       # Événements (batailles, révolutions, etc.)
+                        'PRODUCT',     # Produits, inventions
+                        'WORK_OF_ART', # Œuvres d'art, livres, films
+                        'LAW',         # Lois, traités
+                        'NORP',        # Nationalités, groupes religieux/politiques
+                        'FACILITY',    # Bâtiments, aéroports, ponts
+                        'LANGUAGE'     # Langues
+                    ] and
+                    not text.isdigit() and                      # Éviter les nombres seuls
+                    len(text.split()) <= 4 and                  # Max 4 mots
+                    not text.lower() in ['le', 'la', 'les', 'de', 'du', 'des', 'un', 'une'] # Éviter articles français
+                ):
+                    entity_list.append(text)
 
             return list(set(entity_list))  # supprimer les doublons
         except Exception as e:
@@ -219,9 +240,9 @@ class QuestionExtractor:
         self.candidate_triples.sort(reverse=True)
 
     def form_questions(self):
-        """ Forme les questions et remplit
-        le dict des questions
-        """
+        ''' Forms the question and populates
+        the question dict with improved formatting
+        '''
         used_sentences = list()
         idx = 0
         cntr = 1
@@ -229,19 +250,47 @@ class QuestionExtractor:
 
         while cntr <= self.num_questions and idx < num_candidates:
             candidate_triple = self.candidate_triples[idx]
+            sentence = candidate_triple[2]
+            keyword = candidate_triple[1]
 
-            if candidate_triple[2] not in used_sentences and candidate_triple[2].strip():
-                used_sentences.append(candidate_triple[2])
+            if sentence not in used_sentences and sentence.strip():
+                used_sentences.append(sentence)
 
-                # Créer la question en remplaçant le mot-clé par des tirets
-                question_text = candidate_triple[2].replace(
-                    candidate_triple[1],
-                    '_' * len(candidate_triple[1]))
+                # Amélioration : génération de question plus naturelle
+                question_text = self.create_better_question(sentence, keyword)
 
                 self.questions_dict[cntr] = {
                     "question": question_text,
-                    "answer": candidate_triple[1]
+                    "answer": keyword
                 }
-
                 cntr += 1
             idx += 1
+
+    def create_better_question(self, sentence, keyword):
+        '''Crée une question plus naturelle'''
+
+        # Calculer la longueur du blanc proportionnelle au mot-clé
+        blank_length = max(5, min(15, len(keyword) + 2))
+        blank = '_' * blank_length
+
+        # Si la phrase contient déjà des mots interrogatifs, garder la structure
+        question_words = ['qui', 'que', 'quoi', 'où', 'quand', 'comment', 'pourquoi',
+                          'who', 'what', 'where', 'when', 'how', 'why']
+
+        sentence_lower = sentence.lower()
+
+        # Vérifier si c'est déjà une question
+        if any(word in sentence_lower for word in question_words) or sentence.endswith('?'):
+            return sentence.replace(keyword, blank)
+
+        # Sinon, créer une question à trous avec une longueur de blanc appropriée
+        question = sentence.replace(keyword, blank)
+
+        # S'assurer que la question se termine par un point d'interrogation
+        if not question.endswith('?'):
+            if question.endswith('.'):
+                question = question[:-1] + ' ?'
+            else:
+                question += ' ?'
+
+        return question
