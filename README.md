@@ -22,11 +22,6 @@ This is a smart Quiz Generator that generates a dynamic quiz from any uploaded t
 ## WorkFlow
 ![workflow](https://user-images.githubusercontent.com/42115530/95686207-1111e300-0c1a-11eb-993a-766967b91c92.png)
 
-## Demo Video
-<a href="https://youtu.be/74RrpcO89E0" target="_blank" rel="noopener">
-  <img src="https://user-images.githubusercontent.com/42115530/95742312-6c40e580-0cad-11eb-89a5-c2ee099bf8d7.png" alt="MLH-Quizzet"
-	title="MLH-Quizzet" width="400px" />
-</a>
 
 ## Technology Stack:
 
@@ -43,41 +38,43 @@ This is a smart Quiz Generator that generates a dynamic quiz from any uploaded t
 ## How to Get Started?
 
 [![Requirements Up To Date](https://img.shields.io/badge/requirements-up%20to%20date-brightgreen)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/blob/webapp/requirements.txt)
-[![Python](https://img.shields.io/badge/python-v3.7-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-v3.8-blue)](https://www.python.org/)
 
 ### GitHub Repository Structure
 
-| S.No. | Branch Name                                                                   | Purpose                            |
-| ----- | ----------------------------------------------------------------------------- | ---------------------------------- |
-| 1.    | [master](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/tree/master) | contains the main code             |
-| 2.    | [nlp](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/tree/nlp)       | contains all machine learning code |
-| 3.    | [webapp](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/tree/webapp) | contains all frontend/backend code |
+| S.No. | Branch Name                                                                                          | Purpose                            |
+| ----- | ---------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1.    | [master](https://github.com/Joello61/MLH-Quizzet)                                                    | contains the main code             |
+| 2.    | [bug_fixes](https://github.com/Joello61/MLH-Quizzet/tree/f/bug_fixes)                                | contains the main code debug       |
+| 3.    | [f/improve_backend](https://github.com/Joello61/MLH-Quizzet/tree/f/improve_backend)                  | contains all backend code          |
+| 3.    | [f/amelioration-feedback](https://github.com/Joello61/MLH-Quizzet/tree/f/amelioration-feedback)      | contains all feedback code         |
+| 3.    | [fix/long_question_layout](https://github.com/Joello61/MLH-Quizzet/tree/fix/long_question_layout)    | contains all frontend code         |
+| 3.    | [****]()                  | contains all ***** code          |
 
 ### Setup
 
 - Fork and Clone the repo using
 
 ```
-$ git clone https://github.com/PragatiVerma18/Fantastic-Falcons-1.0.git
-$ cd Fantastic-Falcons-1.0
+$ git clone https://github.com/Joello61/MLH-Quizzet.git
 ```
 
-- Change Branch to `webapp` using
+- Change Branch to
 
 ```
-$ git checkout webapp
+$ git checkout branch
 ```
 
 - Setup Virtual environment
 
 ```
-$ python3 -m venv env
+$ py -3.8 -m venv env
 ```
 
 - Activate the virtual environment
 
 ```
-$ source env/bin/activate
+$ .\env\Scripts\Activate.ps1
 ```
 
 - Install dependencies using
@@ -89,7 +86,7 @@ $ pip install -r requirements.txt
 - Run Flask server using
 
 ```
-$ python app.py
+$ py app.py
 ```
 
 ## Browser Support
@@ -109,50 +106,12 @@ $ python app.py
 
 ## Team:
 
-> "Alone we can do so little; together we can do so much."
-
-| S.No. | Name               | Role               | GitHub Username:octocat:                             |
-| ----- | ------------------ | ------------------ | ---------------------------------------------------- |
-| 1.    | Pragati Verma      | Frontend Developer | [@PragatiVerma18](https://github.com/PragatiVerma18) |
-| 2.    | Kshitij Kotasthane | Backend Developer  | [@kshitij86](https://github.com/kshitij86)           |
-| 3.    | Vignesh S          | ML                 | [@telescopic](https://github.com/telescopic)         |
-
-
-<br>
-<br>
-
-![Fantastic Falcons](https://user-images.githubusercontent.com/42115530/95672625-0aef1880-0bc0-11eb-8db6-90f6e16af2c0.gif)
-
-## Contributors ✨
-
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody><tr>
-    <td align="center"><a href="https://www.linkedin.com/in/PragatiVerma18/"><img alt="" src="https://avatars2.githubusercontent.com/u/42115530?v=4" width="100px;"><br><sub><b>Pragati Verma</b></sub></a><br><a href="https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/commits?author=PragatiVerma18" title="Code">💻</a></td>
-    <td align="center"><a href="https://kshitij86.github.io/"><img alt="" src="https://avatars1.githubusercontent.com/u/26821140?s=460&u=c86d062a10d9d4495dd39c0ad4f8601ba256d670&v=4" width="100px;"><br><sub><b>Kshitij Kotasthane</b></sub></a><br><a href="https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/commits?author=kshitij86" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/telescopic"><img alt="" src="https://avatars1.githubusercontent.com/u/45061877?s=400&u=07ac89db20b5d84eb1abd4a0769b19d030f8ceb8&v=4" width="100px;"><br><sub><b>Vignesh S</b></sub></a><br><a href="https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/commits?author=telescopic" title="Code">💻</a></td>
-  </tr>
-</tbody></table>
+| S.No. | Name                           | Role                | GitHub Username:octocat:                             |
+| ----- | ------------------------------ | ------------------- | ---------------------------------------------------- |
+| 1.    | Haoni WU                       | Scrum Master        | [@haoniWU](https://github.com/haoniWU)               |
+| 2.    | Timothée Joël TCHINDA TCHOFFOl | Backend Developer   | [@Joello61](https://github.com/Joello61)             |
+| 3.    | Luce BELLA NGUEMA              | Backend Developer   | [@luceivanie](https://github.com/luceivanie)         |
+| 4.    | Issakha ABDEL-AZIZ             | Frontend Developer  | [@Abdel14353](https://github.com/Abdel4353)          |
+| 5.    | Robin DUCLOS                   | Backend Developer   | [@robin.duclos](https://github.com/robin.duclos)     |
 
 
-<!-- markdownlint-enable -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-[![ForTheBadge uses-git](http://ForTheBadge.com/images/badges/uses-git.svg)](https://github.com/)
-[![ForTheBadge uses-html](http://ForTheBadge.com/images/badges/uses-html.svg)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/)
-[![ForTheBadge uses-css](http://ForTheBadge.com/images/badges/uses-css.svg)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/)
-[![ForTheBadge uses-js](http://ForTheBadge.com/images/badges/uses-js.svg)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/)
-
-[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
-[![ForTheBadge built-by-developers](http://ForTheBadge.com/images/badges/built-by-developers.svg)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/)
-[![ForTheBadge built-with-love](http://ForTheBadge.com/images/badges/built-with-love.svg)](https://github.com/PragatiVerma18/Fantastic-Falcons-1.0/)
-
----
