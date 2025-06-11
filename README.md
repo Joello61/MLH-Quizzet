@@ -47,9 +47,9 @@ This is a smart Quiz Generator that generates a dynamic quiz from any uploaded t
 | 1.    | [master](https://github.com/Joello61/MLH-Quizzet)                                                    | contains the main code             |
 | 2.    | [bug_fixes](https://github.com/Joello61/MLH-Quizzet/tree/f/bug_fixes)                                | contains the main code debug       |
 | 3.    | [f/improve_backend](https://github.com/Joello61/MLH-Quizzet/tree/f/improve_backend)                  | contains all backend code          |
-| 3.    | [f/amelioration-feedback](https://github.com/Joello61/MLH-Quizzet/tree/f/amelioration-feedback)      | contains all feedback code         |
-| 3.    | [fix/long_question_layout](https://github.com/Joello61/MLH-Quizzet/tree/fix/long_question_layout)    | contains all frontend code         |
-| 3.    | [****]()                  | contains all ***** code          |
+| 4.    | [f/amelioration-feedback](https://github.com/Joello61/MLH-Quizzet/tree/f/amelioration-feedback)      | contains all feedback code         |
+| 5.    | [fix/long_question_layout](https://github.com/Joello61/MLH-Quizzet/tree/fix/long_question_layout)    | contains all frontend code         |
+| 6.    | [****]()                  | contains all ***** code          |
 
 ### Setup
 
